@@ -16,7 +16,7 @@ var reset_button: Button
 func _ready() -> void:
  # Web canvas dimensions use physical pixels; keep controls in CSS pixels.
  if OS.has_feature("web"):
-  get_window().content_scale_factor = maxf(1.0,float(JavaScriptBridge.eval("window.devicePixelRatio || 1",true)))
+  get_window().content_scale_factor = maxf(0.25,float(JavaScriptBridge.eval("window.officeRenderScale || window.devicePixelRatio || 1",true)))
  RenderingServer.set_default_clear_color(Color("203d35"))
  var map := Node2D.new()
  map.set_script(load("res://scripts/office_map.gd"))
@@ -44,7 +44,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
  if OS.has_feature("web"):
-  var ratio := maxf(1.0,float(JavaScriptBridge.eval("window.devicePixelRatio || 1",true)))
+  var ratio := maxf(0.25,float(JavaScriptBridge.eval("window.officeRenderScale || window.devicePixelRatio || 1",true)))
   if absf(get_window().content_scale_factor-ratio)>0.01: get_window().content_scale_factor = ratio
  if hub and hub.zone != "office":
   camera.position = Vector2(2100,550)

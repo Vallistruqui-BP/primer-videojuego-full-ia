@@ -18,6 +18,16 @@ var position_fields: Array[SpinBox] = []
 var updating := false
 var collision_root: Node2D
 var custom_active := false
+var dragging := false
+var drag_new := false
+var drag_before: Dictionary = {}
+var drag_offset := Vector2.ZERO
+var drag_start := Vector2.ZERO
+var drag_valid := false
+var drag_moved := false
+var drag_pointer := -1
+var trash: Button
+var hidden_hud: Array[Control] = []
 
 func attach(target: Node2D) -> void:
  office = target
@@ -41,7 +51,7 @@ func attach(target: Node2D) -> void:
  title.text = "TU OFICINA · EDITOR 3D"
  body.add_child(title)
  info = Label.new()
- info.text = "Clic en una pieza o elegila abajo.\nMovela con los controles X y Z.\nAl entrar en una sala se usa el mapa compartido."
+ info.text = "Arrastrá las piezas para moverlas.\nSoltalas en Quitar para eliminarlas.\nEscape cancela · Deshacer recupera cambios."
  info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
  body.add_child(info)
  pieces = OptionButton.new()
@@ -67,12 +77,21 @@ func attach(target: Node2D) -> void:
  var edit_row := HBoxContainer.new()
  body.add_child(edit_row)
  add_button(edit_row,"Girar 90°",rotate_selected)
- add_button(edit_row,"Quitar",remove_selected)
+ trash = Button.new()
+ trash.text = "Quitar"
+ trash.tooltip_text = "Soltá una pieza aquí para eliminarla; Deshacer la recupera."
+ trash.pressed.connect(remove_selected)
+ edit_row.add_child(trash)
  add_button(edit_row,"Deshacer",undo)
  palette = OptionButton.new()
  for label in NAMES: palette.add_item(label)
  body.add_child(palette)
- add_button(body,"Agregar pieza",add_piece)
+ var source := Button.new()
+ source.text = "Arrastrar pieza al mapa"
+ source.custom_minimum_size.y = 44
+ source.gui_input.connect(palette_input.bind(source))
+ body.add_child(source)
+ add_button(body,"Agregar en el centro",add_piece)
  var save_row := HBoxContainer.new()
  body.add_child(save_row)
  add_button(save_row,"Guardar borrador",save)
@@ -103,8 +122,15 @@ func resize() -> void:
  var size := office.get_viewport_rect().size
  menu.position = Vector2(18,238 if size.x<370 else 192)
  menu.size = Vector2(152,36)
- panel.position = Vector2(maxf(12,size.x-316),90)
- panel.size = Vector2(minf(304,size.x-24),maxf(240,size.y-110))
+ if size.x < 900:
+  var height := minf(330, size.y * 0.46)
+  panel.position = Vector2(12, size.y-height-12)
+  panel.size = Vector2(size.x-24,height)
+ else:
+  panel.position = Vector2(size.x-340,60)
+  panel.size = Vector2(328,maxf(240,size.y-76))
+ if active: menu.position = Vector2(12,12)
+ if dragging: cancel_drag()
 
 func toggle() -> void:
  if not active and (office.network.busy or office.network.connecting):
@@ -114,7 +140,17 @@ func toggle() -> void:
   office.status_label.text = "Salí de la sala para editar tu borrador local."
   return
  if not active and (office.hub.screen!="" or office.network.dialog.visible): return
+ if dragging: cancel_drag()
  active = not active
+ if active:
+  for child in office.hud.get_children():
+   if child is Control and child != menu and child != panel and child.visible:
+    hidden_hud.append(child)
+    child.hide()
+ else:
+  for child in hidden_hud:
+   if is_instance_valid(child): child.show()
+  hidden_hud.clear()
  if active:
   office.hub.travel("office")
   office.map_mode = true
@@ -129,19 +165,124 @@ func toggle() -> void:
  office.world3d.set_editor_active(active)
  panel.visible = active
  menu.text = "Cerrar editor" if active else "Editar mapa 3D"
+ resize()
  if active: refresh()
 
 func _unhandled_input(event: InputEvent) -> void:
- if not active or not event is InputEventMouseButton or not event.pressed or event.button_index!=MOUSE_BUTTON_LEFT: return
- var p: Vector2 = office.world3d.screen_to_map(event.position)
- if not p.is_finite(): return
- var best := 48.0
- var index := -1
+ if not active or dragging: return
+ if event is InputEventKey and event.pressed and not event.echo:
+  if event.keycode == KEY_DELETE and not office.get_viewport().gui_get_focus_owner() is LineEdit and not transfer.has_focus():
+   remove_selected()
+   get_viewport().set_input_as_handled()
+ elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+  begin_existing_drag(event.position)
+ elif event is InputEventScreenTouch and event.pressed:
+  begin_existing_drag(event.position,event.index)
+
+func _input(event: InputEvent) -> void:
+ if not active or not dragging: return
+ if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+  cancel_drag()
+  get_viewport().set_input_as_handled()
+ elif event is InputEventMouseMotion and drag_pointer == -1:
+  update_drag(event.position)
+  get_viewport().set_input_as_handled()
+ elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and drag_pointer == -1:
+  finish_drag(event.position)
+  get_viewport().set_input_as_handled()
+ elif event is InputEventScreenDrag and event.index == drag_pointer:
+  update_drag(event.position)
+  get_viewport().set_input_as_handled()
+ elif event is InputEventScreenTouch and not event.pressed and event.index == drag_pointer:
+  finish_drag(event.position)
+  get_viewport().set_input_as_handled()
+
+func _notification(what: int) -> void:
+ if what == NOTIFICATION_APPLICATION_FOCUS_OUT and dragging: cancel_drag()
+
+func palette_input(event: InputEvent, source: Control) -> void:
+ if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+  begin_palette_drag(get_viewport().get_mouse_position())
+ elif event is InputEventScreenTouch and event.pressed:
+  begin_palette_drag(source.get_global_transform() * event.position,event.index)
+
+func begin_existing_drag(screen: Vector2, pointer := -1) -> void:
+ var id: String = office.world3d.pick_object(screen)
  for i in range(layout.objects.size()):
-  var item: Dictionary = layout.objects[i]
-  var distance := p.distance_to(Vector2(item.x,item.y))
-  if distance<best: best=distance;index=i
- if index>=0: select_piece(index)
+  if layout.objects[i].id == id:
+   select_piece(i)
+   start_drag(screen,false,pointer)
+   return
+
+func begin_palette_drag(screen: Vector2, pointer := -1) -> void:
+ if not active or dragging: return
+ if layout.objects.size() >= 250: status.text="Límite de 250 piezas.";return
+ drag_before = layout.duplicate(true)
+ layout.objects.append(new_piece())
+ selected = layout.objects.size()-1
+ office.world3d.add_layout_object(layout.objects[selected])
+ start_drag(screen,true,pointer)
+
+func start_drag(screen: Vector2, is_new: bool, pointer: int) -> void:
+ dragging=true
+ drag_new=is_new
+ if not is_new: drag_before=layout.duplicate(true)
+ drag_start=screen
+ drag_moved=false
+ drag_valid=false
+ drag_pointer=pointer
+ var item: Dictionary=layout.objects[selected]
+ drag_offset=Vector2.ZERO if is_new else Vector2(item.x,item.y)-office.world3d.screen_to_map(screen)
+ refresh()
+ status.text="Arrastrá al mapa. Escape cancela."
+ get_viewport().set_input_as_handled()
+
+func update_drag(screen: Vector2) -> void:
+ if not dragging: return
+ drag_moved=drag_moved or screen.distance_to(drag_start)>4
+ var point: Vector2=office.world3d.screen_to_map(screen)+drag_offset
+ if not point.is_finite(): drag_valid=false;return
+ var item: Dictionary=layout.objects[selected]
+ item.x=snappedf(point.x,10)
+ item.y=snappedf(point.y,10)
+ drag_valid=not panel.get_global_rect().has_point(screen) and Store.validate(layout).is_empty()
+ office.world3d.move_layout_object(item)
+ status.text="Soltá para colocar · ajuste de 10" if drag_valid else "Fuera del mapa: al soltar se cancela."
+ if trash.get_global_rect().has_point(screen) and not drag_new: status.text="Soltá para quitar la pieza."
+
+func finish_drag(screen: Vector2) -> void:
+ if not dragging: return
+ if not drag_moved:
+  cancel_drag()
+  return
+ update_drag(screen)
+ var remove := not drag_new and trash.get_global_rect().has_point(screen)
+ if not drag_valid and not remove:
+  cancel_drag()
+  status.text="Movimiento cancelado: soltá dentro de la oficina."
+  return
+ dragging=false
+ if remove:
+  layout.objects.remove_at(selected)
+ history.append(drag_before)
+ if history.size()>30: history.pop_front()
+ apply()
+ refresh()
+ status.text="Pieza quitada. Deshacer la recupera." if remove else "Pieza colocada. Guardá el borrador para conservarla."
+ drag_before={}
+
+func cancel_drag() -> void:
+ if not dragging: return
+ dragging=false
+ layout=drag_before
+ drag_before={}
+ apply()
+ refresh()
+ status.text="Arrastre cancelado."
+
+func new_piece() -> Dictionary:
+ var kind: String=Store.KINDS[palette.selected]
+ return {"id":"piece_"+str(Time.get_ticks_usec()),"kind":kind,"x":620.0,"y":740.0,"w":60.0 if kind!="plant" else 20.0,"d":6.0 if kind=="wall" else 30.0,"rotation":0.0,"zone":"office"}
 
 func refresh() -> void:
  updating = true
@@ -201,8 +342,7 @@ func remove_selected() -> void:
 func add_piece() -> void:
  if layout.objects.size()>=250:status.text="Límite de 250 piezas.";return
  remember()
- var kind: String=Store.KINDS[palette.selected]
- layout.objects.append({"id":"piece_"+str(Time.get_ticks_usec()),"kind":kind,"x":620.0,"y":740.0,"w":60.0 if kind!="plant" else 20.0,"d":6.0 if kind=="wall" else 30.0,"rotation":0.0,"zone":"office"})
+ layout.objects.append(new_piece())
  selected=layout.objects.size()-1
  apply_edit()
 

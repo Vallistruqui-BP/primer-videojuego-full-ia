@@ -81,11 +81,7 @@ func apply_layout(data: Dictionary) -> void:
 		var center := Vector2(wall[0] + wall[2] / 2.0, wall[1] + wall[3] / 2.0)
 		add_box(office_root, map_to_world(center, 0.50), Vector3(wall[2] / SIZE, 1.0, wall[3] / SIZE), Color("637d73"))
 	for object in data.get("objects", []):
-		var id := str(object.id)
-		var node := add_prop(objects_root, str(object.kind), Vector2(object.x, object.y), Vector2(object.w, object.d), float(object.get("rotation", 0)))
-		node.set_meta("layout_id", id)
-		node.set_meta("footprint", Vector2(object.w, object.d))
-		objects_by_id[id] = node
+		add_layout_object(object)
 	for door in data.get("doors", []):
 		add_door(office_root, Vector2(door.x, door.y), float(door.width), float(door.rotation), "office")
 	for label in data.get("labels", []):
@@ -95,6 +91,36 @@ func apply_layout(data: Dictionary) -> void:
 	add_prop(office_root, "mailbox", Vector2(660, 810), Vector2(25, 22))
 	add_label(office_root, Vector2(660, 825), "BUZÓN", 0.03, true, 0.36)
 	set_selected_object(selected_id)
+
+func add_layout_object(object: Dictionary) -> void:
+	var id := str(object.id)
+	var node := add_prop(objects_root, str(object.kind), Vector2(object.x, object.y), Vector2(object.w, object.d), float(object.get("rotation", 0)))
+	node.set_meta("layout_id", id)
+	node.set_meta("footprint", Vector2(object.w, object.d))
+	objects_by_id[id] = node
+
+func move_layout_object(object: Dictionary) -> void:
+	var node := objects_by_id.get(str(object.id)) as Node3D
+	if node:
+		node.position = map_to_world(Vector2(object.x,object.y))
+
+func pick_object(screen: Vector2) -> String:
+	var origin := camera.project_ray_origin(screen)
+	var direction := camera.project_ray_normal(screen)
+	var closest := INF
+	var result := ""
+	for id in objects_by_id:
+		var node := objects_by_id[id]
+		for mesh in node.find_children("*", "MeshInstance3D", true, false):
+			if mesh == selection: continue
+			var inverse: Transform3D = mesh.global_transform.affine_inverse()
+			var hit = mesh.get_aabb().intersects_ray(inverse * origin, inverse.basis * direction)
+			if hit is Vector3:
+				var distance: float = origin.distance_to(mesh.global_transform * hit)
+				if distance < closest:
+					closest = distance
+					result = id
+	return result
 
 func make_floor(outline: PackedVector2Array) -> void:
 	layout_bounds = Rect2(outline[0], Vector2.ZERO)
@@ -220,8 +246,10 @@ func update_camera(player_point: Vector2, zone: String, map_mode: bool) -> void:
 		room_root.visible = zone != "office"
 		room_floor.material_override = material(Color("506650") if zone == "workshop" else Color("465663"))
 	var viewport_size := get_viewport().get_visible_rect().size
-	var pane_width := 320.0 if editor_active and viewport_size.x >= 900 else 0.0
-	var aspect := maxf(0.15, (viewport_size.x - pane_width) / maxf(1.0, viewport_size.y))
+	var pane_width := 352.0 if editor_active and viewport_size.x >= 900 else 0.0
+	var bottom_height := minf(330,viewport_size.y*0.46)+24 if editor_active and viewport_size.x<900 else 0.0
+	var available_height := maxf(100,viewport_size.y-bottom_height-60)
+	var aspect := maxf(0.15, (viewport_size.x - pane_width) / available_height)
 	var overview := map_mode or editor_active or zone != "office"
 	var bounds := layout_bounds if zone == "office" else Rect2(1780, 300, 640, 470)
 	var target := map_to_world(bounds.get_center() if overview else player_point)
@@ -229,10 +257,11 @@ func update_camera(player_point: Vector2, zone: String, map_mode: bool) -> void:
 	if overview:
 		var fit_width := bounds.size.x / SIZE / (1.58 * aspect)
 		var fit_depth := (bounds.size.y / SIZE * 0.9 + 3.5) / 1.33
-		distance = maxf(fit_width, fit_depth) / tan(deg_to_rad(camera.fov / 2.0))
+		distance = maxf(fit_width, fit_depth) * viewport_size.y / available_height / tan(deg_to_rad(camera.fov / 2.0))
 	camera.position = target + Vector3(0.0, 0.89, 0.456).normalized() * distance
 	camera.look_at(target)
 	# Camera offsets shift the framing without changing the view angle.
+	camera.v_offset = -(bottom_height-40)*distance*tan(deg_to_rad(camera.fov/2.0))/maxf(1,viewport_size.y) if editor_active else 0.0
 	camera.h_offset = pane_width * distance * tan(deg_to_rad(camera.fov / 2.0)) / maxf(1.0, viewport_size.y)
 
 func screen_to_map(screen: Vector2) -> Vector2:

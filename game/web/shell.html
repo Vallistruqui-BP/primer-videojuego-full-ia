@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$GODOT_PROJECT_NAME</title>
+<style>
+html,body {margin:0;width:100%;height:100%;overflow:hidden;background:#203d35;color:#f3eddf;font-family:system-ui,sans-serif}
+#canvas {display:block;width:100vw;height:100vh;outline:none;touch-action:none}
+#loading,#recovery {position:fixed;inset:0;display:grid;place-content:center;gap:16px;padding:28px;background:#203d35;z-index:10;text-align:center}
+#loading[hidden],#recovery[hidden] {display:none}
+h1 {font-size:24px;margin:0} p {max-width:460px;line-height:1.6;margin:0 auto}
+button {font:inherit;font-weight:600;background:#eed5a4;color:#203d35;border:0;border-radius:8px;padding:14px 20px;cursor:pointer}
+button:focus-visible {outline:3px solid white;outline-offset:4px}
+progress {width:min(360px,80vw);margin:auto;accent-color:#eed5a4}
+</style>
+$GODOT_HEAD_INCLUDE
+</head>
+<body>
+<canvas id="canvas" tabindex="0">Este navegador no admite el juego.</canvas>
+<div id="loading" role="status"><h1>Preparando la oficina</h1><p>La primera carga puede tardar un poco.</p><progress id="progress"></progress></div>
+<div id="recovery" role="alertdialog" aria-modal="true" aria-labelledby="recovery-title" hidden>
+<h1 id="recovery-title">No se pudo iniciar el juego</h1><p id="recovery-message"></p>
+<button id="reload" type="button">Volver a cargar el juego</button>
+</div>
+<noscript>Activá JavaScript para jugar.</noscript>
+<script src="$GODOT_URL"></script>
+<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const canvas = document.getElementById('canvas');
+const loading = document.getElementById('loading');
+const recovery = document.getElementById('recovery');
+let graphicsLost = false;
+// Own canvas sizing: cap GPU pixel allocation, retain CSS-sized controls and input.
+GODOT_CONFIG.canvasResizePolicy = 0;
+function resizeCanvas() {
+ const width = Math.max(1, window.innerWidth), height = Math.max(1, window.innerHeight);
+ const scale = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(2000000 / (width * height)));
+ window.officeRenderScale = scale;
+ const w = Math.round(width * scale), h = Math.round(height * scale);
+ if (canvas.width !== w) canvas.width = w;
+ if (canvas.height !== h) canvas.height = h;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+function showFailure(title, message) {
+ loading.hidden = true;
+ document.getElementById('recovery-title').textContent = title;
+ document.getElementById('recovery-message').textContent = message;
+ recovery.hidden = false;
+ document.getElementById('reload').focus();
+}
+// The engine's default listener only opens a blocking English alert. Replace that UI.
+canvas.addEventListener('webglcontextlost', event => {
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ graphicsLost = true;
+ showFailure('Se interrumpió la imagen del juego', 'El navegador perdió la conexión gráfica (WebGL). Podés volver a cargar el juego. El borrador guardado se conserva; los cambios sin guardar pueden perderse.');
+}, true);
+document.getElementById('reload').addEventListener('click', () => window.location.reload());
+if (typeof Engine === "undefined") {
+ showFailure("No se pudo descargar el juego", "Revisá la conexión y volvé a cargar la oficina.");
+} else {
+const engine = new Engine(GODOT_CONFIG);
+const missing = Engine.getMissingFeatures({threads: $GODOT_THREADS_ENABLED});
+if (missing.length) {
+ showFailure('Este navegador no puede iniciar el juego', 'Se necesita WebGL 2 y WebAssembly. Probá con una versión actualizada de tu navegador.');
+} else {
+ engine.startGame({canvas, onProgress(current,total) {
+  const progress = document.getElementById('progress');
+  if (total > 0) {progress.max=total;progress.value=current;}
+ }}).then(() => {if (!graphicsLost) loading.hidden=true;}).catch(error => {
+  console.error(error);
+  if (!graphicsLost) showFailure('No se pudo cargar la oficina', 'Revisá la conexión y volvé a cargar el juego.');
+ });
+}
+}
+</script>
+</body>
+</html>
