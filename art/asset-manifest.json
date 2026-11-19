@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "blender_version": "4.5.9 LTS",
+  "recipe": "scripts/blender_office_props.py",
+  "recipe_sha256": "c0d8b5176f735597a8d9489984c814eb58c79e29bea06261829618de48d8dda7",
+  "assets": [
+    {
+      "id": "office-desk",
+      "title": "Original office desk",
+      "creator": "Pedro Vallarino project / Codex procedural authoring",
+      "creator_url": "",
+      "source_url": "project://scripts/blender_office_props.py",
+      "license": "Project-owned original; authorized for this game's source and distribution",
+      "license_url": "project://art/ATTRIBUTIONS.md",
+      "acquisition": "original_work",
+      "license_review": "Created from primitive meshes for the user-authorized release; no external art or source licenses",
+      "reviewed_at": "2026-11-19",
+      "original": "art/source/office-props.blend",
+      "sha256": "db03ba23e35c18363cb4d0baea094fdc93065ed0ed259a21e0f5eb5739bc8bbd",
+      "modifications": "Original meshes and emission palette rendered by Blender",
+      "derivatives": [
+        "game/art/office/desk.png"
+      ],
+      "derivative_sha256": "e9ff0b2421050b9f1890f5ddf3b0c6bb0bff8a369f5792c864154ac1d7f1815a",
+      "derivative_bytes": 1949,
+      "dimensions": [
+        64,
+        32
+      ],
+      "anchor": "center",
+      "scene": "Desk",
+      "attribution": "Original procedural office module created for Primer Videojuego Full IA; no third-party art",
+      "redistribution_reviewed": true
+    },
+    {
+      "id": "office-desk_square",
+      "title": "Original office desk_square",
+      "creator": "Pedro Vallarino project / Codex procedural authoring",
+      "creator_url": "",
+      "source_url": "project://scripts/blender_office_props.py",
+      "license": "Project-owned original; authorized for this game's source and distribution",
+      "license_url": "project://art/ATTRIBUTIONS.md",
+      "acquisition": "original_work",
+      "license_review": "Created from primitive meshes for the user-authorized release; no external art or source licenses",
+      "reviewed_at": "2026-11-19",
+      "original": "art/source/office-props.blend",
+      "sha256": "db03ba23e35c18363cb4d0baea094fdc93065ed0ed259a21e0f5eb5739bc8bbd",
+      "modifications": "Original meshes and emission palette rendered by Blender",
+      "derivatives": [
+        "game/art/office/desk_square.png"
+      ],
+      "derivative_sha256": "222cfe08bf39cedd641cba6e42ff9490cef2320c544bd5577ddd13b31f60515f",
+      "derivative_bytes": 3003,
+      "dimensions": [
+        64,
+        64
+      ],
+      "anchor": "center",
+      "scene": "Desk_square",
+      "attribution": "Original procedural office module created for Primer Videojuego Full IA; no third-party art",
+      "redistribution_reviewed": true
+    },
+    {
+      "id": "office-chair",
+      "title": "Original office chair",
+      "creator": "Pedro Vallarino project / Codex procedural authoring",
+      "creator_url": "",
+      "source_url": "project://scripts/blender_office_props.py",
+      "license": "Project-owned original; authorized for this game's source and distribution",
+      "license_url": "project://art/ATTRIBUTIONS.md",
+      "acquisition": "original_work",
+      "license_review": "Created from primitive meshes for the user-authorized release; no external art or source licenses",
+      "reviewed_at": "2026-11-19",
+      "original": "art/source/office-props.blend",
+      "sha256": "db03ba23e35c18363cb4d0baea094fdc93065ed0ed259a21e0f5eb5739bc8bbd",
+      "modifications": "Original meshes and emission palette rendered by Blender",
+      "derivatives": [
+        "game/art/office/chair.png"
+      ],
+      "derivative_sha256": "01b4dfa3be77ada18687da6c1789f1e97ac18c80f55a3176d3a1cd529766b32b",
+      "derivative_bytes": 1019,
+      "dimensions": [
+        24,
+        24
+      ],
+      "anchor": "center",
+      "scene": "Chair",
+      "attribution": "Original procedural office module created for Primer Videojuego Full IA; no third-party art",
+      "redistribution_reviewed": true
+    },
+    {
+      "id": "office-door",
+      "title": "Original office door",
+      "creator": "Pedro Vallarino project / Codex procedural authoring",
+      "creator_url": "",
+      "source_url": "project://scripts/blender_office_props.py",
+      "license": "Project-owned original; authorized for this game's source and distribution",
+      "license_url": "project://art/ATTRIBUTIONS.md",
+      "acquisition": "original_work",
+      "license_review": "Created from primitive meshes for the user-authorized release; no external art or source licenses",
+      "reviewed_at": "2026-11-19",
+      "original": "art/source/office-props.blend",
+      "sha256": "db03ba23e35c18363cb4d0baea094fdc93065ed0ed259a21e0f5eb5739bc8bbd",
+      "modifications": "Original meshes and emission palette rendered by Blender",
+      "derivatives": [
+        "game/art/office/door.png"
+      ],
+      "derivative_sha256": "40e471559e84bf056203df7fabdc9e487260b51d939ee7e013ff89968da28f29",
+      "derivative_bytes": 856,
+      "dimensions": [
+        48,
+        16
+      ],
+      "anchor": "center",
+      "scene": "Door",
+      "attribution": "Original procedural office module created for Primer Videojuego Full IA; no third-party art",
+      "redistribution_reviewed": true
+    }
+  ]
+}

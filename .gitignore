@@ -1,0 +1,12 @@
+game/.godot/
+server/.secrets/
+output/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.log
+*.blend1
+.DS_Store
+Thumbs.db

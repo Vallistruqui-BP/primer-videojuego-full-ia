@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "origin": "Original project artwork. Palette and motifs adapted from the project's original office sprites.",
+  "rights": "Project-owned source. Public source license and redistribution permission are unspecified.",
+  "blender_version": "4.5.9 LTS",
+  "recipe": "scripts/blender_office_3d.py",
+  "source": {
+    "path": "art/source/office-kit-3d.blend",
+    "sha256": "fc3d0381152ad3d9530a1964a3003eb04e52c453869bef4e8e985dfe36107fd4"
+  },
+  "gltf_axes": {
+    "up": "+Y",
+    "front": "+Z"
+  },
+  "footprint_m": [
+    1,
+    1
+  ],
+  "models": {
+    "desk": {
+      "path": "game/art/office3d/desk.glb",
+      "height_m": 1.165,
+      "sha256": "f60c70995ef114e94bb4744d423f0295d106501233ef2c36301a9399789c2f6c",
+      "bytes": 61628,
+      "triangles": 736
+    },
+    "desk_square": {
+      "path": "game/art/office3d/desk_square.glb",
+      "height_m": 1.165,
+      "sha256": "3cb37f6cff490ef1db5238fc7d1207e8c9d9960e48a8f3365ff4e1bf60672d9c",
+      "bytes": 75164,
+      "triangles": 912
+    },
+    "chair": {
+      "path": "game/art/office3d/chair.glb",
+      "height_m": 1.075,
+      "sha256": "f25a74a260d5b335ac67972c834237591087099107001676983bb24d14fec4cb",
+      "bytes": 40792,
+      "triangles": 484
+    },
+    "table": {
+      "path": "game/art/office3d/table.glb",
+      "height_m": 0.8835,
+      "sha256": "efe05664708881b589c24d85019231476afdb6441ffc95e19574181de3d9ab77",
+      "bytes": 25848,
+      "triangles": 340
+    },
+    "sofa": {
+      "path": "game/art/office3d/sofa.glb",
+      "height_m": 0.78,
+      "sha256": "47df8fbc8d9f28b6c31ba9b50675053406fe90f751fa05178817bc6b65e616b6",
+      "bytes": 47364,
+      "triangles": 572
+    },
+    "reception": {
+      "path": "game/art/office3d/reception.glb",
+      "height_m": 1.176,
+      "sha256": "dbdbdc8a164d5d51eed678ac7818373fe6d5ef815824c94185f45d3d465f7079",
+      "bytes": 59520,
+      "triangles": 704
+    },
+    "core": {
+      "path": "game/art/office3d/core.glb",
+      "height_m": 1.725,
+      "sha256": "f153d2cb9ba43e730a47d17baf432b20ccb3f1363dc452358a7b525514493ebd",
+      "bytes": 35572,
+      "triangles": 384
+    },
+    "plant": {
+      "path": "game/art/office3d/plant.glb",
+      "height_m": 1.537436,
+      "sha256": "4c70ef0303f9f61fc79189f0dc74c631d964c13a6869c0d8d4ffa1d50b095b9b",
+      "bytes": 28608,
+      "triangles": 296
+    },
+    "arcade": {
+      "path": "game/art/office3d/arcade.glb",
+      "height_m": 1.705,
+      "sha256": "52e88eb04a40f5fb3942f3c93d89326aa068d0d965441db2fe6d4a168398e321",
+      "bytes": 45032,
+      "triangles": 512
+    },
+    "door": {
+      "path": "game/art/office3d/door.glb",
+      "height_m": 2.12,
+      "sha256": "57b5388f87bbdee79981e78a2346e30995e26d4e36ebae650696ac7a2dd287a8",
+      "bytes": 54112,
+      "triangles": 660
+    },
+    "mailbox": {
+      "path": "game/art/office3d/mailbox.glb",
+      "height_m": 1.275,
+      "sha256": "1b57acdfa2c3313b820a3756c8413de5324b4f4340d94da63a1997d7bd102631",
+      "bytes": 29256,
+      "triangles": 320
+    },
+    "avatar": {
+      "path": "game/art/office3d/avatar.glb",
+      "height_m": 1.655,
+      "sha256": "3359c748d4be209600d451025316e11804b9bf6b0b04aaa907da20ea83233df4",
+      "bytes": 70276,
+      "triangles": 836
+    }
+  },
+  "assembled_map": {
+    "path": "art/source/office-map-3d.blend",
+    "bytes": 292516,
+    "sha256": "e5a66b7a6686f42ece00f91a92f51459075138b3bc18e315b0249320c3b40ad6",
+    "recipe": "scripts/blender_office_map.py",
+    "layout": "game/data/office_layout.json",
+    "layout_sha256": "200d9bb6e4f6a6e6530474a569ad9d3af1b97f831192beba6f0c2323bd104a97",
+    "kit_sha256": "fc3d0381152ad3d9530a1964a3003eb04e52c453869bef4e8e985dfe36107fd4",
+    "pixels_per_meter": 40
+  }
+}

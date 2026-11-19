@@ -1,0 +1,33 @@
+; Engine configuration file.
+config_version=5
+
+[application]
+config/name="Líderes · Oficina jugable"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+run/main_scene="res://scenes/office3d.tscn"
+
+[autoload]
+Nakama="*res://addons/com.heroiclabs.nakama/Nakama.gd"
+
+[display]
+window/size/viewport_width=1440
+window/size/viewport_height=1000
+window/stretch/mode="disabled"
+
+[input]
+move_left={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 65}]}
+move_right={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 68}]}
+jump={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 32}]}
+shoot={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 74}]}
+aim_up={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 87}]}
+aim_down={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 83}]}
+player2_move_left={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 16777231}]}
+player2_move_right={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 16777233}]}
+player2_jump={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 16777232}]}
+player2_shoot={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 16777234}]}
+player2_aim_up={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 16777232}]}
+player2_aim_down={"deadzone": 0.5, "events": [{"type": "Key", "physical_keycode": 16777234}]}
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.125,0.239,0.208,1)

@@ -1,0 +1,37 @@
+name: primer-videojuego-candidate
+services:
+  database:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: nakama
+      POSTGRES_USER: office
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [candidate_database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U office -d nakama"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+  nakama:
+    image: registry.heroiclabs.com/heroiclabs/nakama:3.37.0
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - /nakama/nakama migrate up --config /run/secrets/nakama_config && exec /nakama/nakama --config /run/secrets/nakama_config
+    depends_on:
+      database: {condition: service_healthy}
+    secrets: [nakama_config]
+    volumes: [./modules:/nakama/data/modules:ro]
+    ports: ["127.0.0.1:17360:7350"]
+  gateway:
+    image: nginx:1.28-alpine
+    volumes:
+      - ./nginx.candidate.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../output/web-next:/usr/share/nginx/html:ro
+    ports: ["127.0.0.1:18792:8080"]
+    depends_on: [nakama]
+secrets:
+  db_password: {file: ./.secrets/db_password}
+  nakama_config: {file: ./.secrets/nakama.yml}
+volumes:
+  candidate_database:
